@@ -116,12 +116,10 @@ const StationMap = ({ selectedVehicleType = 'all' }: StationMapProps) => {
     <div className="map-container">
       <MapContainer
         style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
-        center={[latitude, longitude] as L.LatLngExpression}
         zoom={14}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         
         {/* User's current location */}

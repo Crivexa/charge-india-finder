@@ -72,14 +72,19 @@ export function useBookings() {
       }
       
       const snapshot = await getDocs(q);
-      const bookingList: Booking[] = snapshot.docs.map((doc) => {
+      const bookingList = snapshot.docs.map((doc) => {
         const data = doc.data() as DocumentData;
         return {
           id: doc.id,
-          ...data,
+          userId: data.userId || '',
+          userName: data.userName || '',
+          stationId: data.stationId || '',
+          stationName: data.stationName || '',
           date: data.date?.toDate() || new Date(),
+          timeSlot: data.timeSlot || '',
+          status: data.status || 'confirmed',
           createdAt: data.createdAt?.toDate() || new Date(),
-        };
+        } as Booking;
       });
       
       setBookings(bookingList);
