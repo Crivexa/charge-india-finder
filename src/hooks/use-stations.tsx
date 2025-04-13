@@ -51,8 +51,8 @@ export function useStations() {
       let q = query(stationsRef, where('isActive', '==', true), orderBy('createdAt', 'desc'));
       
       // If user is an owner, also fetch their inactive stations
-      if (userData?.role === 'owner') {
-        q = query(stationsRef, where('ownerId', '==', user?.uid), orderBy('createdAt', 'desc'));
+      if (userData?.role === 'owner' && user) {
+        q = query(stationsRef, where('ownerId', '==', user.id), orderBy('createdAt', 'desc'));
       }
       
       const snapshot = await getDocs(q);
@@ -79,7 +79,7 @@ export function useStations() {
   // Initial fetch
   useEffect(() => {
     fetchStations();
-  }, [userData?.role, user?.uid]);
+  }, [userData?.role, user?.id]);
 
   // Add a new station
   const addStation = async (stationData: NewStation) => {
@@ -94,10 +94,16 @@ export function useStations() {
 
     try {
       const stationsRef = collection(db, 'stations');
+      const userName = userData?.name || 
+                       user.user_metadata?.full_name || 
+                       user.user_metadata?.name || 
+                       user.email?.split('@')[0] || 
+                       'Unknown User';
+      
       await addDoc(stationsRef, {
         ...stationData,
-        ownerId: user.uid,
-        ownerName: user.displayName,
+        ownerId: user.id,
+        ownerName: userName,
         createdAt: serverTimestamp(),
       });
       

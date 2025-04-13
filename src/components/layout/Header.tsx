@@ -26,6 +26,18 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
+  // Extract user info from userData or user.user_metadata
+  const userDisplayName = userData?.name || 
+                         user?.user_metadata?.full_name || 
+                         user?.user_metadata?.name || 
+                         user?.email?.split('@')[0] || 
+                         'User';
+  
+  const userEmail = user?.email || '';
+  
+  // Get first letter for avatar fallback
+  const userInitial = userDisplayName.charAt(0).toUpperCase();
+
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -57,19 +69,17 @@ const Header = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.photoURL || undefined} alt={user.displayName || "User"} />
-                      <AvatarFallback>
-                        {user.displayName ? user.displayName.charAt(0).toUpperCase() : "U"}
-                      </AvatarFallback>
+                      <AvatarImage src={user.user_metadata?.avatar_url || undefined} alt={userDisplayName} />
+                      <AvatarFallback>{userInitial}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                      <p className="text-sm font-medium leading-none">{userDisplayName}</p>
                       <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
+                        {userEmail}
                       </p>
                     </div>
                   </DropdownMenuLabel>

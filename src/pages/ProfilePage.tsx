@@ -31,6 +31,17 @@ const ProfilePage = () => {
     }
   };
   
+  // Extract user info from userData or user.user_metadata
+  const userDisplayName = userData?.name || 
+                         user.user_metadata?.full_name || 
+                         user.user_metadata?.name || 
+                         user.email?.split('@')[0] || 
+                         'User';
+  
+  const userEmail = user.email || '';
+  const userAvatar = user.user_metadata?.avatar_url;
+  const userInitial = userDisplayName.charAt(0).toUpperCase();
+  
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
@@ -42,13 +53,13 @@ const ProfilePage = () => {
             <Card>
               <CardHeader className="text-center">
                 <Avatar className="w-24 h-24 mx-auto mb-4">
-                  <AvatarImage src={user.photoURL || undefined} alt={user.displayName || "User"} />
+                  <AvatarImage src={userAvatar || undefined} alt={userDisplayName} />
                   <AvatarFallback className="text-2xl">
-                    {user.displayName ? user.displayName.charAt(0).toUpperCase() : "U"}
+                    {userInitial}
                   </AvatarFallback>
                 </Avatar>
-                <CardTitle>{user.displayName}</CardTitle>
-                <CardDescription>{user.email}</CardDescription>
+                <CardTitle>{userDisplayName}</CardTitle>
+                <CardDescription>{userEmail}</CardDescription>
               </CardHeader>
               
               <CardContent>

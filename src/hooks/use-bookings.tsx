@@ -46,7 +46,7 @@ export function useBookings() {
         // Fetch bookings for the stations owned by this user
         // First, we need to get the stations owned by this user
         const stationsRef = collection(db, 'stations');
-        const stationsQuery = query(stationsRef, where('ownerId', '==', user.uid));
+        const stationsQuery = query(stationsRef, where('ownerId', '==', user.id));
         const stationsSnapshot = await getDocs(stationsQuery);
         const stationIds = stationsSnapshot.docs.map(doc => doc.id);
         
@@ -66,7 +66,7 @@ export function useBookings() {
         // Regular user - fetch their own bookings
         q = query(
           bookingsRef, 
-          where('userId', '==', user.uid),
+          where('userId', '==', user.id),
           orderBy('date', 'desc')
         );
       }
@@ -169,10 +169,16 @@ export function useBookings() {
 
     try {
       const bookingsRef = collection(db, 'bookings');
+      const userName = userData?.name || 
+                       user.user_metadata?.full_name || 
+                       user.user_metadata?.name || 
+                       user.email?.split('@')[0] || 
+                       'Unknown User';
+      
       await addDoc(bookingsRef, {
         ...bookingData,
-        userId: user.uid,
-        userName: user.displayName,
+        userId: user.id,
+        userName: userName,
         status: 'confirmed',
         createdAt: serverTimestamp(),
       });
