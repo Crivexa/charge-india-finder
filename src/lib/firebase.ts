@@ -4,16 +4,14 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  // The user will need to add their Firebase config
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  apiKey: "AIzaSyBwq1zcFbx30O9uPhudEhgKPz5AkBzFZVU",
+  authDomain: "evchargingstationfinder-736ec.firebaseapp.com",
+  projectId: "evchargingstationfinder-736ec",
+  storageBucket: "evchargingstationfinder-736ec.appspot.com",
+  messagingSenderId: "712598879499",
+  appId: "1:712598879499:web:26d3e5f32a44e0d0835d28",
+  measurementId: "G-GQ8RJDVNHE"
 };
 
 // Initialize Firebase
@@ -21,5 +19,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
+
+// Configure Google Auth provider to select account every time
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
 
 export { auth, db, googleProvider };

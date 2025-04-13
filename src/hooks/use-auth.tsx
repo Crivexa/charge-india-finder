@@ -10,7 +10,8 @@ import {
   User, 
   signInWithPopup, 
   signOut as firebaseSignOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  GoogleAuthProvider
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, googleProvider } from '@/lib/firebase';
@@ -30,9 +31,11 @@ interface AuthContextType {
   user: User | null;
   userData: UserData | null;
   loading: boolean;
+  authError: Error | null;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   updateUserRole: (role: UserRole) => Promise<void>;
+  clearAuthError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [authError, setAuthError] = useState<Error | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -92,13 +96,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
-      await signInWithPopup(auth, googleProvider);
-      toast({
-        title: "Welcome!",
-        description: "You've successfully signed in.",
-      });
+      setAuthError(null);
+      console.log("Starting Google sign-in process...");
+      
+      const result = await signInWithPopup(auth, googleProvider);
+      
+      // Get the Google Access Token
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      
+      if (credential) {
+        console.log("Authentication successful");
+        toast({
+          title: "Welcome!",
+          description: "You've successfully signed in.",
+        });
+      }
     } catch (error) {
       console.error("Error signing in with Google:", error);
+      console.error("Error code:", (error as any).code);
+      console.error("Error message:", (error as any).message);
+      
+      setAuthError(error as Error);
+      
       toast({
         title: "Sign-in Failed",
         description: "Could not sign in with Google. Please try again.",
@@ -150,13 +169,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const clearAuthError = () => {
+    setAuthError(null);
+  };
+
   const value = {
     user,
     userData,
     loading,
+    authError,
     signInWithGoogle,
     signOut,
     updateUserRole,
+    clearAuthError,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

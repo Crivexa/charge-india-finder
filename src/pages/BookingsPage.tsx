@@ -4,9 +4,45 @@ import BookingList from '@/components/booking/BookingList';
 import { useAuth } from '@/hooks/use-auth';
 import { Link, Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 const BookingsPage = () => {
-  const { user } = useAuth();
+  const { user, loading, authError } = useAuth();
+  
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[50vh]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-ev-blue" />
+            <p className="text-lg">Loading your bookings...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+  
+  if (authError) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-12">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Authentication Error</AlertTitle>
+            <AlertDescription>
+              {authError.message}
+              <div className="mt-4">
+                <Link to="/login">
+                  <Button variant="outline">Go to Login</Button>
+                </Link>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </Layout>
+    );
+  }
   
   if (!user) {
     return <Navigate to="/login" />;

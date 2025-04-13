@@ -1,15 +1,17 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const LoginPage = () => {
-  const { user, loading, signInWithGoogle } = useAuth();
+  const { user, loading, authError, signInWithGoogle, clearAuthError } = useAuth();
   const navigate = useNavigate();
+  const [retryCount, setRetryCount] = useState(0);
   
   useEffect(() => {
     // Redirect if already logged in
@@ -17,6 +19,12 @@ const LoginPage = () => {
       navigate('/');
     }
   }, [user, navigate]);
+  
+  const handleRetry = () => {
+    clearAuthError();
+    setRetryCount(prev => prev + 1);
+    signInWithGoogle();
+  };
   
   return (
     <Layout>
@@ -30,6 +38,26 @@ const LoginPage = () => {
           </CardHeader>
           
           <CardContent className="grid gap-4">
+            {authError && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Authentication failed. {authError.message}
+                  <div className="mt-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex items-center" 
+                      onClick={handleRetry}
+                    >
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Try Again
+                    </Button>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <Button 
               onClick={signInWithGoogle}
               className="w-full bg-white text-gray-800 border border-gray-300 hover:bg-gray-100"
