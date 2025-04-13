@@ -1,3 +1,4 @@
+
 import { 
   createContext, 
   useContext, 
@@ -5,8 +6,8 @@ import {
   useEffect, 
   ReactNode 
 } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Session, User, Provider } from '@supabase/supabase-js';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { Session, User } from '@supabase/supabase-js';
 import { toast } from '@/components/ui/use-toast';
 
 type UserRole = 'user' | 'owner';
@@ -43,6 +44,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authError, setAuthError] = useState<Error | null>(null);
 
   useEffect(() => {
+    // Check if Supabase is configured
+    if (!isSupabaseConfigured()) {
+      console.error('Supabase is not properly configured. Please set your Supabase URL and Anon Key.');
+      setLoading(false);
+      setAuthError(new Error('Supabase configuration is missing. Please check the console for details.'));
+      return;
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
@@ -73,33 +82,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               createdAt: new Date(data.created_at),
             });
           } else if (session.user) {
+            // Get user metadata from Supabase user
+            const fullName = session.user.user_metadata?.full_name || 
+                             session.user.user_metadata?.name || 
+                             session.user.email?.split('@')[0] || null;
+                             
             const newUserData: UserData = {
               uid: session.user.id,
-              name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || null,
+              name: fullName,
               email: session.user.email,
               role: 'user',
               createdAt: new Date(),
             };
 
-            const { error: insertError } = await supabase
-              .from('user_profiles')
-              .insert([{
-                uid: newUserData.uid,
-                name: newUserData.name,
-                email: newUserData.email,
-                role: newUserData.role,
-                created_at: newUserData.createdAt.toISOString(),
-              }]);
+            // Create user profile in database
+            try {
+              const { error: insertError } = await supabase
+                .from('user_profiles')
+                .insert([{
+                  uid: newUserData.uid,
+                  name: newUserData.name,
+                  email: newUserData.email,
+                  role: newUserData.role,
+                  created_at: newUserData.createdAt.toISOString(),
+                }]);
 
-            if (insertError) {
-              console.error('Error creating user profile:', insertError);
-              toast({
-                title: "Error",
-                description: "Failed to create user profile. Please try again.",
-                variant: "destructive",
-              });
-            } else {
-              setUserData(newUserData);
+              if (insertError) {
+                console.error('Error creating user profile:', insertError);
+                toast({
+                  title: "Error",
+                  description: "Failed to create user profile. Please try again.",
+                  variant: "destructive",
+                });
+              } else {
+                setUserData(newUserData);
+              }
+            } catch (err) {
+              console.error('Error in user profile creation:', err);
             }
           }
         } else {
@@ -111,10 +130,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     const initSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setLoading(false);
+      try {
+        const { data } = await supabase.auth.getSession();
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+      } catch (error) {
+        console.error('Error initializing session:', error);
+        setAuthError(error instanceof Error ? error : new Error('Failed to initialize session'));
+      } finally {
+        setLoading(false);
+      }
     };
 
     initSession();
