@@ -18,13 +18,15 @@ const AuthCallbackPage = () => {
       }
 
       try {
-        const { error: sessionError } = await supabase.auth.getSession();
+        // Get the current session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error('Error during auth callback:', sessionError);
           setError(sessionError.message);
           navigate('/login?error=auth-callback-failed');
         } else {
+          // If session exists, navigate to home
           navigate('/');
         }
       } catch (err) {
