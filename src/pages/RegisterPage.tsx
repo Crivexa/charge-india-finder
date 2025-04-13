@@ -4,16 +4,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/hooks/use-auth';
-import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
+import { useAuth } from '@/hooks/use-auth';
+import { Loader2, AlertCircle, RefreshCw, Mail } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const RegisterPage = () => {
-  const { user, userData, loading, authError, signInWithGoogle, updateUserRole, clearAuthError } = useAuth();
+  const { user, userData, loading, authError, signUp, signInWithGoogle, updateUserRole, clearAuthError } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedRole, setSelectedRole] = useState<'user' | 'owner'>('user');
   const [updatingRole, setUpdatingRole] = useState(false);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -22,6 +27,18 @@ const RegisterPage = () => {
       navigate('/');
     }
   }, [user, userData, navigate]);
+  
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      await signUp(email, password);
+      setRegistrationComplete(true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   
   const handleRoleSelection = async () => {
     if (!user) return;
@@ -40,6 +57,36 @@ const RegisterPage = () => {
     signInWithGoogle();
   };
   
+  // If registration is complete (email verification sent)
+  if (registrationComplete) {
+    return (
+      <Layout>
+        <div className="container max-w-md mx-auto px-4 py-12">
+          <Card>
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl font-bold text-center">Check Your Email</CardTitle>
+              <CardDescription className="text-center">
+                We've sent a verification link to your email address.
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="grid gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg text-center">
+                <p className="text-blue-700">
+                  Please check your email ({email}) and click the verification link to complete your registration.
+                </p>
+              </div>
+              
+              <Button onClick={() => navigate('/login')} className="w-full">
+                Return to Login
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
+    );
+  }
+  
   return (
     <Layout>
       <div className="container max-w-md mx-auto px-4 py-12">
@@ -53,7 +100,7 @@ const RegisterPage = () => {
           
           <CardContent className="grid gap-4">
             {!user ? (
-              // Step 1: Sign in with Google
+              // Step 1: Sign up form
               <>
                 {authError && (
                   <Alert variant="destructive" className="mb-4">
@@ -74,6 +121,56 @@ const RegisterPage = () => {
                     </AlertDescription>
                   </Alert>
                 )}
+                
+                <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      placeholder="your@email.com" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                    <p className="text-xs text-gray-500">Password must be at least 6 characters</p>
+                  </div>
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Mail className="mr-2 h-4 w-4" />
+                    )}
+                    Sign up with Email
+                  </Button>
+                </form>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                  </div>
+                </div>
                 
                 <Button 
                   onClick={signInWithGoogle}
@@ -115,7 +212,7 @@ const RegisterPage = () => {
               <div className="space-y-4">
                 <div className="bg-green-50 p-4 rounded-lg">
                   <p className="text-green-700">
-                    Signed in as <strong>{user.displayName || user.email}</strong>
+                    Signed in as <strong>{user.email}</strong>
                   </p>
                 </div>
                 

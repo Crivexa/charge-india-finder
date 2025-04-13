@@ -16,6 +16,9 @@ import StationDetailPage from "@/pages/StationDetailPage";
 import OwnerDashboardPage from "@/pages/OwnerDashboardPage";
 import ProfilePage from "@/pages/ProfilePage";
 import NotFound from "@/pages/NotFound";
+import AuthCallbackPage from "@/pages/AuthCallbackPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 
 // Create a new queryClient
 const queryClient = new QueryClient();
@@ -36,6 +39,9 @@ const App = () => (
             <Route path="/station/:stationId" element={<StationDetailPage />} />
             <Route path="/owner-dashboard" element={<OwnerDashboardPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -1,28 +1,49 @@
 
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
-import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw, Mail } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
 
 const LoginPage = () => {
-  const { user, loading, authError, signInWithGoogle, clearAuthError } = useAuth();
+  const { user, loading, authError, signInWithEmail, signInWithGoogle, clearAuthError } = useAuth();
   const navigate = useNavigate();
-  const [retryCount, setRetryCount] = useState(0);
+  const [searchParams] = useSearchParams();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
+    // Check for error in URL params
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      console.error('Auth error from URL:', errorParam);
+    }
+    
     // Redirect if already logged in
     if (user) {
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, navigate, searchParams]);
+  
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      await signInWithEmail(email, password);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   
   const handleRetry = () => {
     clearAuthError();
-    setRetryCount(prev => prev + 1);
     signInWithGoogle();
   };
   
@@ -58,10 +79,64 @@ const LoginPage = () => {
               </Alert>
             )}
             
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="your@email.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <Link to="/forgot-password" className="text-xs text-ev-blue hover:underline">
+                    Forgot password?
+                  </Link>
+                </div>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isSubmitting || loading}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Mail className="mr-2 h-4 w-4" />
+                )}
+                Sign in with Email
+              </Button>
+            </form>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">Or continue with</span>
+              </div>
+            </div>
+            
             <Button 
               onClick={signInWithGoogle}
               className="w-full bg-white text-gray-800 border border-gray-300 hover:bg-gray-100"
               disabled={loading}
+              type="button"
             >
               {loading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
