@@ -115,24 +115,18 @@ const StationMap = ({ selectedVehicleType = 'all' }: StationMapProps) => {
   return (
     <div className="map-container">
       <MapContainer
-        center={[latitude, longitude]}
-        zoom={14}
         style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
+        center={[latitude, longitude] as L.LatLngExpression}
+        zoom={14}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         
         {/* User's current location */}
         <Marker
-          position={[latitude, longitude]}
-          icon={L.divIcon({
-            className: 'current-location-marker',
-            html: `<div class="w-6 h-6 bg-blue-500 rounded-full border-2 border-white pulsing-marker"></div>`,
-            iconSize: [24, 24],
-            iconAnchor: [12, 12],
-          })}
+          position={[latitude, longitude] as L.LatLngExpression}
         >
           <Popup>
             <div className="text-center py-1">
@@ -145,8 +139,7 @@ const StationMap = ({ selectedVehicleType = 'all' }: StationMapProps) => {
         {filteredStations.map((station) => (
           <Marker
             key={station.id}
-            position={[station.latitude, station.longitude]}
-            icon={getStationIcon(station)}
+            position={[station.latitude, station.longitude] as L.LatLngExpression}
             eventHandlers={{
               click: () => {
                 setSelectedStation(station);

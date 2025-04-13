@@ -31,7 +31,7 @@ const BookingsPage = () => {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Authentication Error</AlertTitle>
             <AlertDescription>
-              {authError.message}
+              {authError.message || "There was an error with authentication."}
               <div className="mt-4">
                 <Link to="/login">
                   <Button variant="outline">Go to Login</Button>

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { collection, query, getDocs, where, orderBy, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, getDocs, where, orderBy, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from './use-auth';
@@ -72,12 +72,15 @@ export function useBookings() {
       }
       
       const snapshot = await getDocs(q);
-      const bookingList: Booking[] = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        date: doc.data().date?.toDate() || new Date(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-      })) as Booking[];
+      const bookingList: Booking[] = snapshot.docs.map((doc) => {
+        const data = doc.data() as DocumentData;
+        return {
+          id: doc.id,
+          ...data,
+          date: data.date?.toDate() || new Date(),
+          createdAt: data.createdAt?.toDate() || new Date(),
+        };
+      });
       
       setBookings(bookingList);
     } catch (err) {
