@@ -116,7 +116,6 @@ const StationMap = ({ selectedVehicleType = 'all' }: StationMapProps) => {
     <div className="map-container">
       <MapContainer
         style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
-        zoom={14}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
